@@ -45,26 +45,33 @@ class TrussElement(Element):
 
     def init(self):
 
+        # make sure all needed parameters exist
+        if not 'E' in self.params.keys():
+            self.params['E'] = 1.0
+
         if not 'A' in self.params.keys():
             self.params['A'] = 1.0
 
-        # compute base vectors
-        self.L0vec = self.X[1] - self.X[0]
-        self.L02 = self.L0vec @ self.L0vec
-        self.L0 = np.sqrt(self.L02)
-        self.N0 = self.L0vec / self.L0
+        # compute reference base vectors
+        L0vec = self.X[1] - self.X[0]
+        L02 = L0vec @ L0vec
+        self.L0 = np.sqrt(L02)
+        self.N0 = L0vec / self.L0
 
 
     def compute(self):
 
         # compute deformed base vectors
-        self.lvec = self.L0vec + self.U[1] - self.U[0]
-        self.l2 = self.lvec @ self.lvec
-        self.l  = np.sqrt(self.l2)
-        self.n = self.lvec / self.l
+        x1 = self.X[0] + self.U[0]
+        x2 = self.X[1] + self.U[1]
+
+        lvec = x2 - x1
+        l2 = lvec @ lvec
+        l  = np.sqrt(l2)
+        n = lvec / l
 
         # compute strain
-        stretch = self.l / self.L0
+        stretch = l / self.L0
         strain = np.log(stretch)
 
         # compute internal force
@@ -72,11 +79,10 @@ class TrussElement(Element):
         fe = k * strain
 
         # compute nodal force
-        self.force = (-fe * self.n, fe * self.n)
+        self.force = (-fe * n, fe * n)
 
         # compute tangent stiffness
-        k /= self.l
-        ke = (k - fe/self.l) * np.outer(self.n, self.n) + fe/self.l * np.identity(self.ndof)
+        ke = (k - fe)/l * np.outer(n, n) + fe/l * np.identity(self.ndof)
         self.stiffness = np.array([[ke,-ke],[-ke,ke]])
 
 

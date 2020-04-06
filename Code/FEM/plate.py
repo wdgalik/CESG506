@@ -26,12 +26,9 @@ class PlateElement(Element):
         self.A  ... element area
         self.g1 ... covariant base vector 1
         self.g2 ... covariant base vector 2
-        self.h1 ... dual base vector 1
-        self.h2 ... dual base vector 2
         self.B1 ... kinematic matrix for node 1
         self.B2 ... kinematic matrix for node 2
         self.B3 ... kinematic matrix for node 3
-        self.stress ... Cauchy stress
 
     inherited variables:
         self.nnode ......... number of nodes per element
@@ -87,7 +84,7 @@ class PlateElement(Element):
         J = np.sqrt( np.linalg.det(G) )
         self.A = J/2.
 
-        # compute dual vectors
+        # compute dual base vectors
         H = np.linalg.inv(G)
         h1 = H[0][0] * self.g1 + H[0][1] * self.g2
         h2 = H[1][0] * self.g1 + H[1][1] * self.g2
@@ -104,13 +101,13 @@ class PlateElement(Element):
 
         strain =  self.B1 @ (U1 - U3)
         strain += self.B2 @ (U2 - U3)
-        self.stress = self.C @ strain
+        stress = self.C @ strain
 
 
         self.force = (
-             self.stress @ self.B1 * self.A,
-             self.stress @ self.B2 * self.A,
-             self.stress @ self.B3 * self.A
+             stress @ self.B1 * self.A,
+             stress @ self.B2 * self.A,
+             stress @ self.B3 * self.A
         )
 
         K11 = self.B1.T @ self.C @ self.B1 * self.A
