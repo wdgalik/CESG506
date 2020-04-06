@@ -15,11 +15,14 @@ import sys
 
 # defining functions and classes ************************
 
+# defining main execution procedure
+
 def main():
     pass
 
 
 # main execution ****************************************
 
-main()
-sys.exit(0)
+if __name__ == "__main__":
+    main()
+    sys.exit(0)
