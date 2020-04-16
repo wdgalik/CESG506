@@ -7,7 +7,7 @@
 #    solutions for assignment #1
 #
 # author: Peter Mackenzie-Helnwein
-# contributor: William (P_critical for Problem 1-2)
+# contributor: William(Bill) and Tatsu (P_critical for Problem 1-2)
 # created: 04/10/2020
 # updated: 04/14/2020
 #
@@ -149,6 +149,7 @@ def Problem_1_1():
     strains = []
 
     u =np.linspace(-0.1*h, 2.1*h, 50)
+    #u =np.linspace(-0.*h, 2.5*h, 50)
 
     for disp in u:
         (eps, P) = getForce_1_1(disp)
@@ -172,8 +173,8 @@ def Problem_1_1():
     for i in range(4):
         ax1.plot(u, strains[:,i],type[i],label=labels[i])
     ax1.set_title('kinematics')
-    ax1.set_xlabel('displacement, u')
-    ax1.set_ylabel('strain, \epsilon')
+    ax1.set_xlabel('displacement, $u$')
+    ax1.set_ylabel('strain, $\epsilon$')
     ax1.legend()
     ax1.grid(True)
 
@@ -187,8 +188,8 @@ def Problem_1_1():
     for i in range(4):
         ax2.plot(u, forces[:,i],type[i],label=labels[i])
     ax2.set_title('undeformed system')
-    ax2.set_xlabel('displacement, u')
-    ax2.set_ylabel('force, P')
+    ax2.set_xlabel('displacement, $u$')
+    ax2.set_ylabel('force, $P$')
     ax2.legend()
     ax2.grid(True)
 
@@ -200,8 +201,8 @@ def Problem_1_1():
     for i in range(4):
         ax3.plot(u, forces[:,i+4],type[i],label=labels[i])
     ax3.set_title('deformed system')
-    ax3.set_xlabel('displacement, u')
-    ax3.set_ylabel('force, P')
+    ax3.set_xlabel('displacement, $u$')
+    ax3.set_ylabel('force, $P$')
     ax3.legend()
     ax3.grid(True)
 
@@ -229,7 +230,7 @@ class Problem_1_2(object):
         Py .. is positive pointing in the positive y-direction.
     """
 
-    TOL = 1.0e-12
+    TOL = 5.0e-12
 
     def __init__(self):
 
@@ -261,24 +262,25 @@ class Problem_1_2(object):
 
         # define reference load vector on free node
         #self.Pref = np.array([0.0, -0.990])      # my quick and dirty critical load
-        self.Pref = np.array([0.0, -0.98171345])  # thanks to William for the more accurate value
+        self.Pref = np.array([0.0, -0.98171345])  # thanks to William and Tatsu for the more accurate value
 
     def __str__(self):
         return "this class solves problem 2 from Assignment #1"
 
     def newtonRaphson(self, loadfactor, U0=np.array([0.0,0.0])):
         # initialize
-        U = U0
+        U = U0.copy()
 
         # check for equilibrium (this returns norm of R!)
         normR = self.getResiduum(loadfactor, U)
+        normR0 = np.max((normR, 0.1))
 
         # provide useful information at initialization
-        print("# {:3d}: U=({:12.6g},{:12.6g}) err={:16.6e}".format(0, U[0], U[1], normR))
+        print("# {:3d}: U=({:12.6g},{:12.6g}) err={:16.6e}".format(0, U[0], U[1], normR/normR0))
 
         # perform iteration loop
         cnt = 1   # counter for emergency exit
-        while normR > self.TOL:
+        while normR/normR0 > self.TOL:
             # update U (single iteration step)
             U += np.linalg.solve(self.KT, self.R)
 
@@ -287,7 +289,7 @@ class Problem_1_2(object):
             #normR = self.getResiduumBruteForce(loadfactor, U)   # the brute-force approach
 
             # provide useful information from iteration steps
-            print("# {:3d}: U=({:12.6g},{:12.6g}) err={:16.6e}".format(cnt, U[0], U[1], normR))
+            print("# {:3d}: U=({:12.6g},{:12.6g}) err={:16.6e}".format(cnt, U[0], U[1], normR/normR0))
 
             # check if we exceed the max number of steps == emergency exit
             cnt += 1
@@ -375,7 +377,6 @@ class Problem_1_2(object):
 
     def laodcontrol(self, loadfactors):# start value for Newton-Raphson iteration
 
-
         for lf in loadfactors:
 
             print("*** new load factor: {} ***\n".format(lf))
@@ -391,7 +392,33 @@ class Problem_1_2(object):
 
     def report(self):
         # this would be a way to generate a nice report
-        pass
+
+        # data collection arrays for plotting
+        lf = []
+        Ux = []
+        Uy = []
+
+        # print equilibrium path information
+        print("  --- lf ---   ----- Ux -----   ----- Uy -----")
+        for state in self.sol:
+
+            lf.append(state['lambda'])
+            Ux.append(state['U'][0])
+            Uy.append(state['U'][1])
+
+            print("{:12.5f},{:16.10f},{:16.10f}".format(state['lambda'],*list(state['U'])))
+
+        # plotting the equilibrium path
+        plt.clf()
+        plt.plot(Ux,lf,'mo-',label="$U_x$ (pos ->)")
+        plt.plot(Uy,lf,'co-',label="$U_y$ (pos ^ )")
+        plt.grid(True)
+        plt.ylabel("load factor, $\lambda$")
+        plt.xlabel("displacement")
+        plt.legend()
+        plt.title("Solution for Problem 1-2")
+        plt.show()
+
 
 
 # defining main execution procedure
@@ -408,12 +435,12 @@ def main():
     prob2 = Problem_1_2()
     print(prob2)
     # set load factors of interest
-    lfs = [0,0.25,0.5,0.75,0.99,0.999]
+    lfs = [0,0.25,0.5,0.75,0.9,0.97,0.99,0.999]
 
     # compute for those load factors
     prob2.laodcontrol(lfs)
 
-    # create a report, if implemented
+    # create a report
     prob2.report()
 
 
