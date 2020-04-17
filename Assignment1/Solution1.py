@@ -213,7 +213,9 @@ def Problem_1_1():
     # yield suitable and extremely similar results.
     # The confidence level in the solution to this problem is thus quite high.
 
-    plt.show()
+    # export figure to file
+    fig.set_size_inches(12, 4, forward=True)
+    plt.savefig('problem1-1_solution.png', dpi=100)
 
 
 class Problem_1_2(object):
@@ -408,16 +410,34 @@ class Problem_1_2(object):
 
             print("{:12.5f},{:16.10f},{:16.10f}".format(state['lambda'],*list(state['U'])))
 
+        # == plotting results ==
+
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+
         # plotting the equilibrium path
-        plt.clf()
-        plt.plot(Ux,lf,'mo-',label="$U_x$ (pos ->)")
-        plt.plot(Uy,lf,'co-',label="$U_y$ (pos ^ )")
-        plt.grid(True)
-        plt.ylabel("load factor, $\lambda$")
-        plt.xlabel("displacement")
-        plt.legend()
-        plt.title("Solution for Problem 1-2")
-        plt.show()
+        ax1.plot(Ux,lf,'mo-',label="$U_x\equiv u$ (pos $\\rightarrow$)")
+        ax1.plot(Uy,lf,'co-',label="$U_y\equiv v$ (pos $\\uparrow$)")
+        ax1.grid(True)
+        ax1.set_ylabel("load factor, $\lambda$")
+        ax1.set_xlabel("displacement")
+        ax1.legend()
+        ax1.set_title("Load-Displacement curves")
+
+        # plotting the equilibrium path
+        ax2.plot(Ux,Uy,'ro-',label="trace of loaded node")
+        ax2.grid(True)
+        ax2.set_xlabel("displacement component $U_x\equiv u$")
+        ax2.set_ylabel("displacement component $U_y\equiv v$")
+
+        for x in zip(lf, Ux, Uy):
+            ax2.annotate("{:8.3f}".format(x[0]), (x[1], x[2]))
+
+        #ax2.legend()
+        ax2.set_title("Tracing the loaded node")
+
+        # export figure to file
+        fig.set_size_inches(12, 6, forward=True)
+        plt.savefig('problem1-2_solution.png',dpi=100)
 
 
 
