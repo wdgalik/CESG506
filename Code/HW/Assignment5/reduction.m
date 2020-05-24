@@ -14,14 +14,14 @@ function [Pf, Ff, Kff] = reduction(nDOF, nds, fixity, Psys, Fsys, Ksys)
 %   Kff: tangent stiffness matrix partitioned at free dofs
 
 % intially, set all nodes as free
-idxF = linspace(1,nDOF*nds,nDOF*nds);
-idxS = [];
+idxF = linspace(1,nDOF*nds,nDOF*nds); %free indices
+idxS = []; %support indices
 
-% find supported nodes
+% find supported nodes (nsn = num supported nodes)
 for nsn = 1:length(fixity(:, 1))
-	nodeID = support(nsn, 1);
+	nodeID = fixity(nsn, 1);
     for dof = 1:nDOF
-	    if support(nsn, dof+1) ~= 0
+	    if fixity(nsn, dof+1) ~= 0
             idxS(end+1) = (nodeID-1)*nDOF + dof;
 	    end
     end

@@ -1,15 +1,15 @@
-function [Fe, Ke] = curved_beam_elem(Pos_i, Pos_j, dof_i, dof_j, EA, EI)
+function [Fe, Ke, dNv] = curved_beam_elem(Pos_i, Pos_j, dof_i, dof_j, EA, EI)
 
 %   INPUTS
 %   Pos_i: position vector at node i (xi, hi)
 %   Pos_j: position vector at node j (xj, hj)
-%   dof_i: dofs at node i (ui, vi, thetai)
-%   dof_j: dofs at node j (uj, vj, thetaj
+%   dof_i: dofs (displacement values) at node i (ui, vi, thetai)
+%   dof_j: dofs (displacement values) at node j (uj, vj, thetaj
 %   EA: Axial stiffness
 %   EI: Bending Stiffness
 
 %   OUTPUTS
-%   Fe: Force vector (Internal + dist. load)
+%   Fe: Force vector (Internal)
 %   Ke: Tangent stiffness matrix
 
 Le = Pos_j(1) - Pos_i(1);
@@ -30,15 +30,15 @@ ngp = 2;
 % Start numerical integration loop
 for gp = 1:ngp
     % get function evaluation location and weighting value
-    pos = eval_pos(gp);
-    weight = eval_weight(gp);
+    posit = eval_pos(gp);
+    weight = eval_weight(gp)*Le;
     
     % obtain shape functions
-    Nu = shape_function(1,0,pos,L_e);
-    dNu = shape_function(1,1,pos,L_e);
-    Nv = shape_function(3,0,pos,L_e);
-    dNv = shape_function(3,1,pos,L_e);
-    ddNv = shape_function(3,2,pos,L_e);
+    Nu = shape_function(1,0,posit,Le);
+    dNu = shape_function(1,1,posit,Le);
+    Nv = shape_function(3,0,posit,Le);
+    dNv = shape_function(3,1,posit,Le);
+    ddNv = shape_function(3,2,posit,Le);
     
     % kinematics (midline approximations)
     dh = (Pos_j(2) - Pos_i(2))/Le;
@@ -62,14 +62,14 @@ for gp = 1:ngp
     dNv_hat = [0, dNv(1), dNv(2), 0, dNv(3), dNv(4)];
     
     % Get internal force vector
-    Fe = Fe + f.*B_eps'*weight + M.*B_eps*weight;
+    Fe = Fe + f*B_eps'*weight + M*B_phi'*weight;
     
     % Get applied force vector
 %     P = P - w.*Nv_hat'*weight;
 
     % Get element stiffness matrix
-    Ke = Ke + EA.*B_eps'*B_eps*weight + EI.*B_phi'*B_phi*weight + ...
-         f.*dNv_hat'*dNv_hat*weight; 
+    Ke = Ke + EA*(B_eps'*B_eps)*weight + EI*(B_phi'*B_phi)*weight + ...
+         f*(dNv_hat'*dNv_hat)*weight; 
     
 end %end gauss integration loop
 
